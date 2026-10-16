@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>วิเคราะห์วรรณกรรม</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1008;
+    --parchment: #f5efe0;
+    --parchment-dark: #e8dfc8;
+    --amber: #c8821a;
+    --amber-light: #e8a83a;
+    --crimson: #8b2020;
+    --sage: #4a6741;
+    --muted: #7a6a55;
+    --shadow: rgba(26,16,8,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--parchment);
+    color: var(--ink);
+    font-family: 'Sarabun', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(200,130,26,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(139,32,32,0.05) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  header {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    border-bottom: 2px solid var(--parchment-dark);
+    position: relative;
+  }
+
+  header::before, header::after {
+    content: '❧';
+    color: var(--amber);
+    font-size: 1.5rem;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  header::before { left: 2rem; }
+  header::after { right: 2rem; transform: translateY(-50%) scaleX(-1); }
+
+  .title-en {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+    color: var(--muted);
+    font-weight: 300;
+    font-style: italic;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  /* Input section */
+  .input-card {
+    background: white;
+    border: 1px solid var(--parchment-dark);
+    border-radius: 2px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 4px 4px 0 var(--parchment-dark), 8px 8px 0 rgba(200,130,26,0.1);
+    position: relative;
+  }
+
+  .input-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(to bottom, var(--amber), var(--crimson));
+    border-radius: 2px 0 0 2px;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--ink);
+    font-size: 0.95rem;
+  }
+
+  .label-hint {
+    font-weight: 300;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  textarea, input[type="text"] {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1.5px solid var(--parchment-dark);
+    border-radius: 2px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 1rem;
+    color: var(--ink);
+    background: var(--parchment);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    resize: vertical;
+    margin-bottom: 1.2rem;
+  }
+
+  textarea:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px rgba(200,130,26,0.12);
+  }
+
+  textarea { min-height: 150px; }
+
+  .genre-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .genre-btn {
+    padding: 0.5rem 0.75rem;
+    border: 1.5px solid var(--parchment-dark);
+    border-radius: 2px;
+    background: var(--parchment);
+    color: var(--muted);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .genre-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .genre-btn.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: white;
+    font-weight: 600;
+  }
+
+  .analyze-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--ink);
+    color: var(--parchment);
+    border: none;
+    border-radius: 2px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.25s;
+    letter-spacing: 0.05em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .analyze-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--amber), var(--crimson));
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .analyze-btn:hover::before { opacity: 1; }
+  .analyze-btn span { position: relative; z-index: 1; }
+
+  .analyze-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Loading */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+  }
+
+  .loading.show { display: block; }
+
+  .quill-loader {
+    display: inline-block;
+    font-size: 2.5rem;
+    animation: write 1.5s ease-in-out infinite;
+    margin-bottom: 1rem;
+  }
+
+  @keyframes write {
+    0%, 100% { transform: rotate(-20deg) translateY(0); }
+    50% { transform: rotate(-20deg) translateY(8px); }
+  }
+
+  /* Results */
+  .results { display: none; }
+  .results.show { display: block; animation: fadeIn 0.5s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--parchment-dark);
+  }
+
+  .result-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+  }
+
+  .result-header .genre-tag {
+    display: inline-block;
+    background: var(--amber);
+    color: white;
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .analysis-card {
+    background: white;
+    border: 1px solid var(--parchment-dark);
+    border-radius: 2px;
+    padding: 1.4rem;
+    box-shadow: 3px 3px 0 var(--parchment-dark);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .analysis-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--parchment-dark);
+  }
+
+  .card-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--amber);
+    margin-bottom: 0.6rem;
+    border-bottom: 1px dashed var(--parchment-dark);
+    padding-bottom: 0.4rem;
+  }
+
+  .card-content {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .full-analysis {
+    background: white;
+    border: 1px solid var(--parchment-dark);
+    padding: 2rem;
+    border-radius: 2px;
+    box-shadow: 4px 4px 0 var(--parchment-dark);
+    margin-bottom: 1.5rem;
+    line-height: 1.9;
+    font-size: 0.95rem;
+  }
+
+  .full-analysis h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--crimson);
+    margin: 1.2rem 0 0.6rem;
+  }
+
+  .full-analysis h3:first-child { margin-top: 0; }
+
+  .full-analysis p { margin-bottom: 0.8rem; color: var(--ink); }
+
+  .full-analysis ul {
+    padding-left: 1.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .full-analysis li { margin-bottom: 0.3rem; }
+
+  .rating-section {
+    background: var(--ink);
+    color: var(--parchment);
+    padding: 1.5rem 2rem;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .rating-label {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+  }
+
+  .stars {
+    font-size: 1.6rem;
+    letter-spacing: 0.1em;
+  }
+
+  .reset-btn {
+    width: 100%;
+    padding: 0.8rem;
+    background: transparent;
+    border: 1.5px solid var(--muted);
+    color: var(--muted);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover {
+    border-color: var(--crimson);
+    color: var(--crimson);
+  }
+
+  .error-msg {
+    display: none;
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    color: var(--crimson);
+    padding: 1rem 1.5rem;
+    border-radius: 2px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .error-msg.show { display: block; }
+
+  @media (max-width: 600px) {
+    header::before, header::after { display: none; }
+    .analysis-grid { grid-template-columns: 1fr; }
+    .rating-section { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="title-en">Literary Analysis Tool</p>
+  <h1>วิเคราะห์วรรณกรรม</h1>
+  <p class="subtitle">ค้นหาความหมายที่ซ่อนอยู่เบื้องหลังตัวอักษร</p>
+</header>
+
+<div class="container">
+
+  <!-- Input Section -->
+  <div class="input-card" id="inputSection">
+    <label>โหมดการวิเคราะห์</label>
+    <select id="modelSelect" style="width:100%;padding:0.85rem 1rem;border:1.5px solid var(--parchment-dark);border-radius:2px;font-family:'Sarabun',sans-serif;font-size:1rem;color:var(--ink);background:var(--parchment);margin-bottom:1.2rem;cursor:pointer;">
+      <option value="online">🌐 AI ออนไลน์ฟรี (ไม่ต้องใช้ key — ถ้าใช้ไม่ได้จะสลับเป็นออฟไลน์อัตโนมัติ)</option>
+      <option value="offline">💻 ออฟไลน์ (ทำงานในเครื่อง ไม่ส่งข้อมูลออกไปไหน)</option>
+    </select>
+
+    <label>ชื่อผลงานวรรณกรรม</label>
+    <input type="text" id="titleInput" placeholder="เช่น สามก๊ก, ขุนช้างขุนแผน, รามเกียรติ์..." />
+
+    <label>เนื้อหาหรือตัวอย่างข้อความ <span class="label-hint">(วางข้อความที่ต้องการวิเคราะห์ หรือสรุปเนื้อเรื่องย่อ)</span></label>
+    <textarea id="contentInput" placeholder="วางข้อความ บทกวี หรือเนื้อเรื่องย่อของวรรณกรรมที่ต้องการวิเคราะห์ที่นี่..."></textarea>
+
+    <label>ประเภทวรรณกรรม</label>
+    <div class="genre-grid">
+      <button class="genre-btn" onclick="selectGenre(this, 'นวนิยาย')">📖 นวนิยาย</button>
+      <button class="genre-btn" onclick="selectGenre(this, 'กวีนิพนธ์')">✒️ กวีนิพนธ์</button>
+      <button class="genre-btn" onclick="selectGenre(this, 'นิทาน/ตำนาน')">🏛️ นิทาน/ตำนาน</button>
+      <button class="genre-btn" onclick="selectGenre(this, 'บทละคร')">🎭 บทละคร</button>
+      <button class="genre-btn" onclick="selectGenre(this, 'เรื่องสั้น')">📜 เรื่องสั้น</button>
+      <button class="genre-btn" onclick="selectGenre(this, 'วรรณคดีคลาสสิก')">🏺 วรรณคดีคลาสสิก</button>
+    </div>
+
+    <button class="analyze-btn" onclick="analyze()"><span>✦ วิเคราะห์วรรณกรรม ✦</span></button>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="quill-loader">✒️</div>
+    <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:1.1rem;color:var(--muted);">กำลังวิเคราะห์...</p>
+    <p style="font-size:0.85rem;color:var(--muted);margin-top:0.5rem;">อ่านระหว่างบรรทัด กำลังค้นหาความหมายที่ลึกกว่า</p>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="result-header">
+      <h2 id="resultTitle"></h2>
+      <span class="genre-tag" id="resultGenre"></span>
+      <p id="modeNote" style="font-size:0.8rem;color:var(--muted);margin-top:0.6rem;font-style:italic;"></p>
+    </div>
+
+    <div class="analysis-grid" id="analysisGrid"></div>
+    <div class="full-analysis" id="fullAnalysis"></div>
+
+    <div class="rating-section" id="ratingSection">
+      <span class="rating-label">คุณค่าทางวรรณกรรม</span>
+      <span class="stars" id="ratingStars"></span>
+    </div>
+
+    <button class="reset-btn" onclick="resetForm()">← วิเคราะห์วรรณกรรมใหม่</button>
+  </div>
+
+</div>
+
+<script>
+  let selectedGenre = '';
+
+  function selectGenre(btn, genre) {
+    document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedGenre = genre;
+  }
+
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function showError(msg) {
+    const errorMsg = document.getElementById('errorMsg');
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('inputSection').style.display = 'block';
+    errorMsg.textContent = msg;
+    errorMsg.classList.add('show');
+  }
+
+  function extractJSON(text) {
+    const clean = text.replace(/```json|```/g, '').trim();
+    try { return JSON.parse(clean); } catch (e) {}
+    const i = clean.indexOf('{'), j = clean.lastIndexOf('}');
+    if (i !== -1 && j > i) return JSON.parse(clean.slice(i, j + 1));
+    throw new Error('ไม่สามารถอ่านผลลัพธ์เป็น JSON ได้');
+  }
+
+  // ---------- วิเคราะห์แบบออฟไลน์ (ไม่ใช้อินเทอร์เน็ต/ไม่ใช้ AI) ----------
+  const GENRE_INFO = {
+    'นวนิยาย': { plot: 'เรื่องเล่าร้อยแก้วที่ดำเนินผ่านตัวละคร ความขัดแย้ง และจุดเปลี่ยนของเรื่อง', lang: 'ใช้ภาษาร้อยแก้วที่สร้างบรรยากาศและบุคลิกตัวละครผ่านการบรรยายและบทสนทนา' },
+    'กวีนิพนธ์': { plot: 'ถ่ายทอดอารมณ์และภาพพจน์ผ่านฉันทลักษณ์และการเลือกสรรถ้อยคำ', lang: 'โดดเด่นด้วยการเล่นคำ สัมผัส จังหวะ และภาพพจน์ เช่น อุปมา อุปลักษณ์' },
+    'นิทาน/ตำนาน': { plot: 'เล่าเหตุการณ์เชิงเปรียบเทียบที่มักแฝงคติสอนใจหรือคำอธิบายความเชื่อของชุมชน', lang: 'ภาษาเรียบง่าย เล่าต่อกันได้ง่าย มีรูปแบบซ้ำและสัญลักษณ์ที่คนในวัฒนธรรมเข้าใจร่วมกัน' },
+    'บทละคร': { plot: 'ดำเนินเรื่องผ่านบทสนทนาและการแสดง เน้นความขัดแย้งระหว่างตัวละครเป็นหลัก', lang: 'ภาษาเน้นบทเจรจาและการแสดงออก เพื่อให้เห็นอารมณ์และเจตนาของตัวละครบนเวที' },
+    'เรื่องสั้น': { plot: 'เล่าเหตุการณ์กระชับ รวมศูนย์ที่ประเด็นหรือช่วงเวลาสำคัญเพียงเรื่องเดียว', lang: 'ภาษากระชับ ทุกถ้อยคำมีหน้าที่ มักทิ้งความหมายไว้ให้ผู้อ่านตีความต่อ' },
+    'วรรณคดีคลาสสิก': { plot: 'เป็นผลงานที่ได้รับการยกย่องและสืบทอดมายาวนาน สะท้อนค่านิยมของยุคสมัยที่ถือกำเนิด', lang: 'ใช้ภาษาและฉันทลักษณ์แบบแผน เปี่ยมด้วยวรรณศิลป์ ควรอ่านควบคู่กับบริบทของยุคสมัย' },
+    'ไม่ระบุ': { plot: 'ยังไม่ระบุประเภท จึงวิเคราะห์จากข้อความที่ให้มาเท่านั้น', lang: 'พิจารณาจากถ้อยคำและน้ำเสียงในข้อความที่ให้มา' }
+  };
+
+  const THEME_KEYWORDS = {
+    'ความรักและความสัมพันธ์': ['รัก', 'หัวใจ', 'คู่', 'เสน่หา', 'love'],
+    'สงครามและความขัดแย้ง': ['สงคราม', 'รบ', 'ศึก', 'ทัพ', 'อาวุธ', 'war'],
+    'ความตายและการพลัดพราก': ['ตาย', 'พลัดพราก', 'สูญเสีย', 'จากไป', 'เศร้า', 'death'],
+    'ธรรมชาติ': ['ป่า', 'น้ำ', 'ดอกไม้', 'ภูเขา', 'ฟ้า', 'ทะเล', 'ลม', 'ดวงจันทร์'],
+    'ศาสนา คุณธรรม และกรรม': ['ธรรม', 'บุญ', 'บาป', 'กรรม', 'ศีล', 'พระ'],
+    'อำนาจและการปกครอง': ['กษัตริย์', 'พระราชา', 'แผ่นดิน', 'อำนาจ', 'เมือง', 'ขุนนาง'],
+    'ครอบครัว': ['แม่', 'พ่อ', 'ลูก', 'พี่', 'น้อง', 'ครอบครัว'],
+    'ความยุติธรรมและชนชั้น': ['ยุติธรรม', 'ยากจน', 'ทาส', 'ชนชั้น', 'เอารัดเอาเปรียบ']
+  };
+
+  function offlineAnalysis(title, content, genre) {
+    const info = GENRE_INFO[genre] || GENRE_INFO['ไม่ระบุ'];
+    const text = content || '';
+    const scored = Object.entries(THEME_KEYWORDS)
+      .map(([theme, words]) => [theme, words.reduce((n, w) => n + (text.split(w).length - 1), 0)])
+      .filter(([, n]) => n > 0)
+      .sort((a, b) => b[1] - a[1]);
+    const top = scored.slice(0, 2).map(([t]) => t);
+    const themeText = top.length
+      ? 'จากถ้อยคำในข้อความ พบแนวทางของเนื้อหาที่เกี่ยวกับ ' + top.join(' และ ') + ' ซึ่งน่าจะเป็นแก่นที่ขับเคลื่อนเรื่องราว'
+      : 'ข้อความที่ให้มายังไม่มีคำสำคัญพอที่จะระบุแก่นเรื่องได้ชัดเจน ลองวางเนื้อหาหรือเรื่องย่อให้ยาวขึ้น';
+    const sentences = text.split(/[.!?。\n]+/).map(x => x.trim()).filter(Boolean);
+    const first = sentences[0] ? sentences[0].slice(0, 120) : '';
+    const name = title || 'ผลงานนี้';
+
+    return {
+      title: title || 'ไม่ระบุชื่อผลงาน',
+      genre: genre,
+      rating: ['วรรณคดีคลาสสิก', 'กวีนิพนธ์'].includes(genre) ? 4 : 3,
+      cards: [
+        { icon: '📖', title: 'โครงเรื่อง', content: info.plot + (first ? ' ตัวอย่างต้นข้อความ: "' + first + '"' : '') },
+        { icon: '👤', title: 'ตัวละคร', content: 'ควรพิจารณาแรงจูงใจ ความขัดแย้งภายใน และความสัมพันธ์ระหว่างตัวละครหลักของ ' + name },
+        { icon: '💡', title: 'แก่นเรื่อง', content: top.length ? top.join(' / ') : 'ยังระบุไม่ได้จากข้อความที่ให้มา' },
+        { icon: '🔮', title: 'สัญลักษณ์', content: 'สังเกตสิ่งที่ถูกกล่าวซ้ำ เช่น วัตถุ สี หรือธรรมชาติ ว่าสื่อถึงความหมายเชิงนามธรรมอะไร' }
+      ],
+      themes: themeText,
+      characters: 'การวิเคราะห์ตัวละครอย่างลึกซึ้งต้องใช้ AI โหมดออฟไลน์ทำได้เพียงชี้แนวทาง: ดูว่าตัวละครต้องการอะไร อะไรขัดขวาง และเปลี่ยนแปลงไปอย่างไรตลอดเรื่อง',
+      language: info.lang,
+      context: 'ผลงานประเภท' + (genre === 'ไม่ระบุ' ? 'นี้' : genre) + ' มักสะท้อนค่านิยมและสภาพสังคมของยุคที่แต่งขึ้น ควรศึกษาประวัติผู้แต่งและช่วงเวลาที่สร้างสรรค์ประกอบ',
+      value: 'เป็นการประเมินเบื้องต้นแบบอัตโนมัติ ไม่ใช่การตัดสินคุณค่าของผลงานจริง สำหรับการวิเคราะห์เชิงลึกให้ใช้โหมด AI ออนไลน์'
+    };
+  }
+
+  // ---------- AI ออนไลน์ฟรี (Pollinations — ไม่ต้องใช้ API key) ----------
+  async function onlineAnalysis(prompt) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 60000);
+    try {
+      const res = await fetch('https://text.pollinations.ai/openai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'openai',
+          messages: [{ role: 'user', content: prompt }],
+          private: true
+        }),
+        signal: ctrl.signal
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const text = data.choices?.[0]?.message?.content || '';
+      return extractJSON(text);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function analyze() {
+    const title = document.getElementById('titleInput').value.trim();
+    const content = document.getElementById('contentInput').value.trim();
+    const errorMsg = document.getElementById('errorMsg');
+
+    errorMsg.classList.remove('show');
+
+    if (!title && !content) {
+      errorMsg.textContent = 'กรุณากรอกชื่อวรรณกรรมหรือเนื้อหาที่ต้องการวิเคราะห์';
+      errorMsg.classList.add('show');
+      return;
+    }
+
+    document.getElementById('inputSection').style.display = 'none';
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('results').classList.remove('show');
+
+    const genre = selectedGenre || 'ไม่ระบุ';
+    const mode = document.getElementById('modelSelect').value;
+    const note = document.getElementById('modeNote');
+
+    const prompt = `คุณเป็นนักวิเคราะห์วรรณกรรม วิเคราะห์วรรณกรรมต่อไปนี้เป็นภาษาไทย:
+
+ชื่อผลงาน: ${title || '(ไม่ระบุ)'}
+ประเภท: ${genre}
+เนื้อหา: ${content || '(ไม่ระบุ)'}
+
+ตอบเป็น JSON เท่านั้น ห้ามมี markdown backtick ห้ามใช้ HTML tags ใน content ทุกช่อง และ rating ต้องเป็นตัวเลข 1-5:
+{
+  "title": "ชื่อผลงาน",
+  "genre": "${genre}",
+  "rating": 4,
+  "cards": [
+    {"icon": "📖", "title": "โครงเรื่อง", "content": "สรุปสั้น 1-2 ประโยค"},
+    {"icon": "👤", "title": "ตัวละคร", "content": "สรุปสั้น 1-2 ประโยค"},
+    {"icon": "💡", "title": "แก่นเรื่อง", "content": "สรุปสั้น 1-2 ประโยค"},
+    {"icon": "🔮", "title": "สัญลักษณ์", "content": "สรุปสั้น 1-2 ประโยค"}
+  ],
+  "themes": "อธิบายแก่นเรื่องหลัก 2-3 ประโยค",
+  "characters": "วิเคราะห์ตัวละครสำคัญ 2-3 ประโยค",
+  "language": "วิเคราะห์ภาษาและสำนวน 2-3 ประโยค",
+  "context": "บริบทสังคมและประวัติศาสตร์ 2-3 ประโยค",
+  "value": "คุณค่าทางวรรณกรรม 2-3 ประโยค"
+}`;
+
+    let result = null;
+    let noteText = '';
+
+    if (mode === 'online') {
+      try {
+        result = await onlineAnalysis(prompt);
+        noteText = 'วิเคราะห์โดย AI ออนไลน์ฟรี (Pollinations)';
+      } catch (err) {
+        console.error('Online AI failed:', err);
+        noteText = 'เชื่อมต่อ AI ออนไลน์ไม่สำเร็จ จึงสลับเป็นการวิเคราะห์ออฟไลน์เบื้องต้นแทน';
+      }
+    } else {
+      noteText = 'การวิเคราะห์ออฟไลน์เบื้องต้น (ไม่ใช้ AI และไม่ส่งข้อมูลออกนอกเครื่อง)';
+    }
+
+    if (!result) result = offlineAnalysis(title, content, genre);
+    note.textContent = noteText;
+    renderResults(result);
+  }
+
+  function renderResults(data) {
+    document.getElementById('loading').classList.remove('show');
+
+    document.getElementById('resultTitle').textContent = data.title;
+    document.getElementById('resultGenre').textContent = data.genre;
+
+    // Cards
+    const grid = document.getElementById('analysisGrid');
+    grid.innerHTML = (data.cards || []).map(card => `
+      <div class="analysis-card">
+        <span class="card-icon">${esc(card.icon)}</span>
+        <div class="card-title">${esc(card.title)}</div>
+        <div class="card-content">${esc(card.content)}</div>
+      </div>
+    `).join('');
+
+    // Full analysis from flat fields
+    const sections = [
+      { label: '🎯 แก่นเรื่องหลัก', key: 'themes' },
+      { label: '👥 การวิเคราะห์ตัวละคร', key: 'characters' },
+      { label: '✍️ ภาษาและสำนวน', key: 'language' },
+      { label: '🏛️ บริบทสังคมและประวัติศาสตร์', key: 'context' },
+      { label: '⭐ คุณค่าทางวรรณกรรม', key: 'value' },
+    ];
+    document.getElementById('fullAnalysis').innerHTML = sections
+      .filter(s => data[s.key])
+      .map(s => `<h3>${s.label}</h3><p>${esc(data[s.key])}</p>`)
+      .join('');
+
+    // Rating
+    const r = Math.min(5, Math.max(1, Math.round(Number(data.rating) || 3)));
+    const stars = '★'.repeat(r) + '☆'.repeat(5 - r);
+    document.getElementById('ratingStars').textContent = stars;
+
+    document.getElementById('results').classList.add('show');
+  }
+
+  function resetForm() {
+    document.getElementById('results').classList.remove('show');
+    document.getElementById('inputSection').style.display = 'block';
+    document.getElementById('titleInput').value = '';
+    document.getElementById('contentInput').value = '';
+    document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
+    selectedGenre = '';
+    document.getElementById('errorMsg').classList.remove('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
